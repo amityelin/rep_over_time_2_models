@@ -67,6 +67,6 @@ _High + Low Pass Filters:_
 
 ---
 
-## 🧠 Project Goal
+## 🧠 Important ROI lableing Clarfication
 
 To quantify how representational features encoded in human V1 drift over time, by modeling neural
