@@ -1,6 +1,6 @@
-# Master's thesis: comparing two models on NSD
+# Master's thesis in progress: comparing two models on NSD
 
-This repository contains the analysis code for my master's thesis. The project uses Natural Scenes Dataset (NSD) images and fMRI measurements to compare two computational models of human visual-cortex responses and investigate how representations change over time.
+This repository contains the analysis code for my master's thesis, which is currently in progress. The project uses Natural Scenes Dataset (NSD) images and fMRI measurements to compare two computational models of human visual-cortex responses and investigate how representations change over time.
 
 This is a **multi-notebook research codebase**, not a single notebook. The analysis is divided into ordered stages for feature construction, population-receptive-field (pRF) sampling, voxel-wise regression, permutation analysis, aggregation, and visualization.
 
