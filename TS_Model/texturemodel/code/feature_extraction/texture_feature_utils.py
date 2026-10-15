@@ -75,11 +75,29 @@ def is_low_level():
     return is_ll
 
 def get_feature_inds_pca(image_set, pca_pct_var, pca_type='pcaHL', \
-                         which_prf_grid=5):
+                         which_prf_grid=5, henderson_pca=False):
 
-    filename = os.path.join(default_paths.pyramid_texture_feat_path,'PCA_%s_v%d'%(pca_type, pca_pct_var), \
-                            '%s_4ori_4sf_featurelabels_%s_v%dpct_grid%d.npy'\
-                               %(image_set, pca_type, pca_pct_var, which_prf_grid))
+    # ============================================================
+    # MODIFICATION (Amit Yelin / Claude, Oct 2026)
+    # ------------------------------------------------------------
+    # The Henderson-replication PCA (separate PCA per higher-level
+    # feature group, from pca_texture_feats.py) is saved in its own
+    # folder with a different label-file name. Previously this
+    # function always loaded the joint-PCA labels from PCA_<type>_v<pct>,
+    # even when the features came from the replication folder. The
+    # label count (54) then truncated the 127-column replication
+    # feature file, silently dropping 8 of the 9 higher-level groups.
+    # ============================================================
+    if henderson_pca:
+        filename = os.path.join(default_paths.pyramid_texture_feat_path,
+                                'PCA_%s_v%d_henderson_replication'%(pca_type, pca_pct_var),
+                                '%s_4ori_4sf_featurelabels_%s_v%d_grid%d.npy'
+                                   %(image_set, pca_type, pca_pct_var, which_prf_grid))
+    else:
+        filename = os.path.join(default_paths.pyramid_texture_feat_path,'PCA_%s_v%d'%(pca_type, pca_pct_var), \
+                                '%s_4ori_4sf_featurelabels_%s_v%dpct_grid%d.npy'\
+                                   %(image_set, pca_type, pca_pct_var, which_prf_grid))
+    print('Loading feature labels from %s' % filename)
     lab = np.load(filename, allow_pickle=True).item()
     cols = lab['feature_column_labels'].astype(int)
     names = lab['feature_type_names']

@@ -160,26 +160,37 @@ class fwrf_feature_loader:
                 # ---------------------------------------------------------
                 else:
 
+                    # ------------------------------------------------------------
+                    # MODIFICATION (Amit Yelin / Claude, Oct 2026)
+                    # The two PCA pipelines save files under different names:
+                    #   Henderson replication (pca_texture_feats.py):
+                    #     PCA_<type>_v<pct>_henderson_replication/..._concat_v<pct>_grid<g>.h5py
+                    #   Joint PCA used for drift (pca_texture_feats_pcaHL.py):
+                    #     PCA_<type>_v<pct>/..._concat_v<pct>pct_grid<g>.h5py
+                    # Features and labels must always come from the SAME pipeline.
+                    # ------------------------------------------------------------
                     if self.henderson_pca:
                         pca_folder = 'PCA_%s_v%d_henderson_replication' % (
                             self.pca_type,
                             self.pca_pct_var
                         )
+                        var_str = 'v%d' % self.pca_pct_var
                     else:
                         pca_folder = 'PCA_%s_v%d' % (
                             self.pca_type,
                             self.pca_pct_var
                         )
+                        var_str = 'v%dpct' % self.pca_pct_var
 
                     self.features_file = os.path.join(
                         feat_path,
                         pca_folder,
-                        '%s_%dori_%dsf_%s_concat_v%d_grid%d.h5py' % (
+                        '%s_%dori_%dsf_%s_concat_%s_grid%d.h5py' % (
                             self.image_set,
                             self.n_ori,
                             self.n_sf,
                             self.pca_type,
-                            self.pca_pct_var,
+                            var_str,
                             self.which_prf_grid
                         )
                     )
@@ -189,7 +200,8 @@ class fwrf_feature_loader:
                             self.image_set,
                             self.pca_pct_var,
                             self.pca_type,
-                            self.which_prf_grid
+                            self.which_prf_grid,
+                            henderson_pca=self.henderson_pca
                         )
         else:
             self.use_pca_feats=False
@@ -231,8 +243,26 @@ class fwrf_feature_loader:
                 % self.features_file
             )
 
-        
-      
+        # ------------------------------------------------------------
+        # MODIFICATION (Amit Yelin / Claude, Oct 2026)
+        # Safety check: the number of feature labels must equal the number
+        # of feature columns in the file. Previously a mismatch was silently
+        # "resolved" by truncating the file to max_features columns in
+        # __load_features_prf_batch__, which dropped features without error.
+        # ------------------------------------------------------------
+        with h5py.File(self.features_file, 'r') as f:
+            n_cols_in_file = f['/features'].shape[1]
+        print('Feature file: %s' % self.features_file)
+        print('Columns in feature file: %d, feature labels: %d'
+              % (n_cols_in_file, self.max_features))
+        if n_cols_in_file != self.max_features:
+            raise RuntimeError(
+                'Feature/label mismatch: %s has %d feature columns but %d '
+                'feature labels were loaded. Features and labels probably come '
+                'from different PCA pipelines.'
+                % (self.features_file, n_cols_in_file, self.max_features)
+            )
+
     def __init_sketch_tokens__(self, kwargs):
 
         feat_path = default_paths.sketch_token_feat_path
