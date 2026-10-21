@@ -4,7 +4,7 @@ This repository contains the analysis code for my master's thesis, which is curr
 
 This is a **multi-notebook research codebase**, not a single notebook. The analysis is divided into ordered stages for feature construction, population-receptive-field (pRF) sampling, voxel-wise regression, permutation analysis, aggregation, and visualization.
 
-> **Project status:** thesis research in development. The public `main` branch currently contains the complete multi-stage notebook structure for `SP_Model`; `TS_Model` is present as the second model workspace but does not yet contain its analysis notebooks. The repository should not be interpreted as a completed two-model comparison until that workflow and the final thesis results are added.
+> **Project status:** thesis research in development. `SP_Model/` contains the steerable-pyramid workflow; `TS_Model/` contains the texture-statistics model (adapted from Henderson et al., 2023), its notebooks, and a validation against the original published fits (see `TS_Model/README.md`). The repository should not be interpreted as a completed two-model comparison until the final thesis results are added.
 
 ## Research objective
 
@@ -12,7 +12,7 @@ The thesis asks how well two computational feature models explain NSD fMRI respo
 
 ## Current analysis pipeline
 
-The implemented `SP_Model/` workflow contains eight notebooks:
+The `SP_Model/` workflow contains nine notebooks:
 
 | Step | Notebook | Purpose |
 |---:|---|---|
@@ -24,6 +24,7 @@ The implemented `SP_Model/` workflow contains eight notebooks:
 | 5 | `5_sim_pop_response_expand.ipynb` | Expand simulated population responses |
 | 6 | `6_save_perm_pop_expand.ipynb` | Generate permutation outputs for expanded responses |
 | 7 | `7_plots.ipynb` | Aggregate and visualize results |
+| 8 | `8_SP_wholedata_validation.ipynb` | Fit the SP model once on all data and validate on the shared-1000 images (Henderson-style), for comparison with session-wise fits and with the TS model |
 
 ## Repository structure
 
@@ -38,10 +39,13 @@ The implemented `SP_Model/` workflow contains eight notebooks:
 │   ├── 5_sim_pop_response_expand.ipynb
 │   ├── 6_save_perm_pop_expand.ipynb
 │   ├── 7_plots.ipynb
+│   ├── 8_SP_wholedata_validation.ipynb
 │   └── upload_pyr_files_to_drive.py
 └── TS_Model/
     ├── README.md
-    └── requirements.txt
+    ├── requirements.txt
+    ├── notebooks/          # TS fitting, diagnostics, Henderson validation (fig3_TS_SP_comparison.ipynb)
+    └── texturemodel/       # modified copy of Henderson's texturemodel code
 ```
 
 ## Data and reproducibility

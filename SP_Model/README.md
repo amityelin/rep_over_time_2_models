@@ -16,6 +16,7 @@ V1-Drift/
 ├── nsd_steerable_pipeline.ipynb # Step 1: Generate steerable pyramid features from NSD stimuli
 ├── nsd_prf_sampling_from_pyramid.ipynb # Step 2: Project features through pRF filters into voxel space
 ├── nsd_regresion_prf_split.ipynb # Step 3: Regress voxel-level fMRI responses on pRF-based features
+├── 8_SP_wholedata_validation.ipynb # Whole-data fit, Henderson-style validation (shared-1000 test set)
 ├── README.md # Project description and structure
 ```
 
