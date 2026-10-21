@@ -39,3 +39,10 @@ noise ceiling > 0.01, pRF-mapping ROIs without category-ROI overlap) for V1-hV4:
 
 Run order: `run/perform_pca_henderson_replication.sh` -> `run/fit_replication_all_subjects.sh` ->
 `notebooks/fig3_TS_SP_comparison.ipynb`.
+
+## Whole-data fits with matched feature counts
+
+To compare models with the same number of predictors as the SP model (18), `run/perform_pca_fixed_n.sh`
+builds pcaLL18 (first 18 PCs of the 49 lower-order features) and pcaAll18 (first 18 PCs of all 641 features),
+and `run/fit_wholedata_fixed_n.sh` fits them on all data (8 subjects x V1-hV4). Section 4 of
+`notebooks/fig3_TS_SP_comparison.ipynb` compares all whole-data models on Henderson's Fig. 3 voxels.
