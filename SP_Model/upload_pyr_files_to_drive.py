@@ -36,8 +36,8 @@ TEST_SMALL_UPLOAD = True                     # quick probe upload to verify fold
 # Paths / IDs
 isub = 1  # Subject number (1–8)
 nsd_design_path = r"D:/NSD/experiments/nsd_expdesign.mat"
-pyramid_folder = r"D:/NSD/pyramid_expand/configurable_256_no_background"   # where pyrImg*.mat / .npz live
-drive_folder_id  = "1G69j71-WJ6dyMymJ9vEY4dsluiPHfIrn"  # target Drive folder ID
+pyramid_folder = r"D:/NSD/pyramid_expand/256_with_background"   # where pyrImg*.mat / .npz live
+drive_folder_id  = "1Gry3DZuPDGzRXobmd45fAp9vRjOZw1UY"  # target Drive folder ID
 CLIENT_SECRETS_JSON = r"D:/NSD/client_secrets.json"      # OAuth client secrets
 
 # Log file
