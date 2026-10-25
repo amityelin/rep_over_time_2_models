@@ -11,7 +11,7 @@ export PYTHONPATH=${ROOT}texturemodel/:${ROOT}texturemodel/code/:${ROOT}texturem
 cd ${ROOT}texturemodel/code/feature_extraction
 
 K=2
-ZSCORE=1
+ZSCORE=0          # 1 = z-score each feature before PCA (tag k<K>z); 0 = as Henderson (tag k<K>)
 TAG=k${K}$([ "$ZSCORE" = "1" ] && echo z)
 SUBJECTS="1 2 3 4 5 6 7 8"
 

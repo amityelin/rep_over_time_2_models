@@ -13,7 +13,7 @@ echo "========== GPU CHECK =========="
 nvidia-smi || echo "WARNING: no GPU -- Runtime > Change runtime type > GPU"
 echo "==============================="
 
-TAG=k2z
+TAG=k2             # must match perform_pca_k_per_group.sh: k2 (no z-scoring) or k2z
 RIDGE=0
 PRF_MODEL=nsd_grid5          # nsd_grid5 (aligned NSD pRFs) or henderson_grid5
 SUBJECTS="1 2 3 4 5 6 7 8"
