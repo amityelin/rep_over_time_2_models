@@ -46,3 +46,14 @@ To compare models with the same number of predictors as the SP model (18), `run/
 builds pcaLL18 (first 18 PCs of the 49 lower-order features) and pcaAll18 (first 18 PCs of all 641 features),
 and `run/fit_wholedata_fixed_n.sh` fits them on all data (8 subjects x V1-hV4). Section 4 of
 `notebooks/fig3_TS_SP_comparison.ipynb` compares all whole-data models on Henderson's Fig. 3 voxels.
+
+## Per-group PCA with a fixed number of PCs (k per group)
+
+The joint PCA of the higher-order features (drift configuration, `pcaHL95`) and the fixed-n joint PCAs
+(`pcaLL18`, `pcaAll18`) are run on unnormalized features, so the retained PCs are dominated by the features with
+the largest raw scale (pcaLL18: 78% marginal statistics, 5% orientation/SF energies; pcaAll18: 82% low-pass
+autocorrelations). `pca_texture_feats.py --fixed_n_per_group K --zscore_before_pca 1` keeps Henderson's grouping
+(49 raw lower-order features + a separate PCA for each of the 9 higher-order groups), but z-scores every feature
+over the training images before PCA and keeps exactly K PCs per group (K=2: 67 predictors for every pRF).
+Run order: `run/perform_pca_k_per_group.sh` -> `run/fit_wholedata_k_per_group.sh` -> Section 4 of
+`notebooks/fig3_TS_SP_comparison.ipynb`. Fitting flag: `--henderson_pca 1 --pyr_pca_tag k2z`.

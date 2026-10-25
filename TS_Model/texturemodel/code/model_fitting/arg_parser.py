@@ -122,6 +122,9 @@ def get_args():
     
     parser.add_argument('--henderson_pca', type=int, default=0,
                         help='Use Henderson-style PCA within texture feature groups (1=yes, 0=no)')
+    parser.add_argument('--pyr_pca_tag', type=str, default='',
+                        help="per-group PCA variant (with --henderson_pca 1), e.g. 'k2z' = 2 PCs per group, "
+                             "z-scored before PCA; loads PCA_<type>_<tag>/")
 
     # gabor
     parser.add_argument("--n_ori_gabor", type=int, default=4,
