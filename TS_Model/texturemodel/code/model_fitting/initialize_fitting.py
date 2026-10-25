@@ -100,6 +100,8 @@ def get_full_save_name(args):
 
             if args.pyr_fixed_n_components > 0:
                 model_name += f'_n{args.pyr_fixed_n_components}'
+            elif getattr(args, 'pyr_pca_tag', ''):
+                model_name += f'_{args.pyr_pca_tag}'
             else:
                 model_name += f'_pca{args.pca_pct_var}'
               
@@ -780,6 +782,7 @@ def make_feature_loaders(args, fitting_types, vi, dnn_layers_use=None):
                 pca_subject=pca_subject,
                 pca_pct_var=args.pca_pct_var,
                 henderson_pca=args.henderson_pca,
+                pca_tag=getattr(args, 'pyr_pca_tag', '') or None,
                 fixed_n_components=(
                     args.pyr_fixed_n_components
                     if args.pyr_fixed_n_components > 0

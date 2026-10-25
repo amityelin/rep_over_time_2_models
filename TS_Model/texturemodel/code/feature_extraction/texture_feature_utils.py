@@ -75,7 +75,7 @@ def is_low_level():
     return is_ll
 
 def get_feature_inds_pca(image_set, pca_pct_var, pca_type='pcaHL', \
-                         which_prf_grid=5, henderson_pca=False):
+                         which_prf_grid=5, henderson_pca=False, pca_tag=None):
 
     # ============================================================
     # MODIFICATION (Amit Yelin / Claude, Oct 2026)
@@ -88,7 +88,13 @@ def get_feature_inds_pca(image_set, pca_pct_var, pca_type='pcaHL', \
     # label count (54) then truncated the 127-column replication
     # feature file, silently dropping 8 of the 9 higher-level groups.
     # ============================================================
-    if henderson_pca:
+    if henderson_pca and pca_tag:
+        # per-group PCA with a fixed number of PCs and/or z-scoring (folder PCA_<type>_<tag>)
+        filename = os.path.join(default_paths.pyramid_texture_feat_path,
+                                'PCA_%s_%s'%(pca_type, pca_tag),
+                                '%s_4ori_4sf_featurelabels_%s_%s_grid%d.npy'
+                                   %(image_set, pca_type, pca_tag, which_prf_grid))
+    elif henderson_pca:
         filename = os.path.join(default_paths.pyramid_texture_feat_path,
                                 'PCA_%s_v%d_henderson_replication'%(pca_type, pca_pct_var),
                                 '%s_4ori_4sf_featurelabels_%s_v%d_grid%d.npy'

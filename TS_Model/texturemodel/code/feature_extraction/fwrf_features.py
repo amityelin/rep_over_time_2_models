@@ -120,6 +120,8 @@ class fwrf_feature_loader:
             if 'fixed_n_components' in kwargs.keys()
             else None
         )
+        # per-group PCA variant tag, e.g. 'k2z' -> PCA_<type>_k2z/ (requires henderson_pca)
+        self.pca_tag = kwargs.get('pca_tag', None) or None
                 
         self.group_all_hl_feats=kwargs['group_all_hl_feats'] if 'group_all_hl_feats' in kwargs.keys() else True
         
@@ -169,7 +171,10 @@ class fwrf_feature_loader:
                     #     PCA_<type>_v<pct>/..._concat_v<pct>pct_grid<g>.h5py
                     # Features and labels must always come from the SAME pipeline.
                     # ------------------------------------------------------------
-                    if self.henderson_pca:
+                    if self.henderson_pca and self.pca_tag:
+                        pca_folder = 'PCA_%s_%s' % (self.pca_type, self.pca_tag)
+                        var_str = self.pca_tag
+                    elif self.henderson_pca:
                         pca_folder = 'PCA_%s_v%d_henderson_replication' % (
                             self.pca_type,
                             self.pca_pct_var
@@ -201,7 +206,8 @@ class fwrf_feature_loader:
                             self.pca_pct_var,
                             self.pca_type,
                             self.which_prf_grid,
-                            henderson_pca=self.henderson_pca
+                            henderson_pca=self.henderson_pca,
+                            pca_tag=self.pca_tag
                         )
         else:
             self.use_pca_feats=False

@@ -26,9 +26,26 @@ def run_pca_texture_pyramid(subject=None,
                             save_weights=False, \
                             min_pct_var=95, max_pc_to_retain=150, \
                             debug=False, which_prf_grid=1, \
-                            save_dtype=np.float32, compress=True):
-                            
-    var_str = 'v%d' % min_pct_var
+                            save_dtype=np.float32, compress=True,
+                            fixed_n_per_group=0, zscore_before_pca=False):
+
+    # ============================================================
+    # MODIFICATION (Amit Yelin / Claude, Oct 2026)
+    # ------------------------------------------------------------
+    # fixed_n_per_group = K > 0: keep exactly K PCs from every PCA
+    #   group (instead of the number of PCs reaching min_pct_var), so
+    #   every group is represented and every pRF has the same number
+    #   of predictors (pcaHL: 49 raw low-level + 9*K).
+    # zscore_before_pca: z-score each feature over the training images
+    #   (within its group) before PCA, so the PCs are not dominated by
+    #   features with large raw scale.
+    # Outputs go to PCA_<type>_<tag>/, tag = k<K>[z] or v<pct>z, and the
+    #   fitting code loads them with --henderson_pca 1 --pyr_pca_tag <tag>.
+    # ============================================================
+    var_str = ('k%d' % fixed_n_per_group) if fixed_n_per_group > 0 else ('v%d' % min_pct_var)
+    if zscore_before_pca:
+        var_str += 'z'
+    custom_tag = fixed_n_per_group > 0 or zscore_before_pca
 
     if subject is not None:
         
@@ -84,10 +101,15 @@ def run_pca_texture_pyramid(subject=None,
     # saved PCA score matrices using the explained variance vector.
     # ============================================================
     
-    path_pca = os.path.join(
-        path_raw,
-        'PCA_%s_%s_henderson_replication' % (pca_type, var_str)
-    )
+    if custom_tag:
+        path_pca = os.path.join(path_raw, 'PCA_%s_%s' % (pca_type, var_str))
+    else:
+        path_pca = os.path.join(
+            path_raw,
+            'PCA_%s_%s_henderson_replication' % (pca_type, var_str)
+        )
+    if custom_tag and use_precomputed_weights:
+        raise NotImplementedError('fixed_n_per_group / zscore_before_pca not supported with precomputed weights')
 
     if not os.path.exists(path_pca):
         os.makedirs(path_pca)
@@ -194,6 +216,8 @@ def run_pca_texture_pyramid(subject=None,
             max_pc_to_retain = n_feat_orig
         else:
             max_pc_to_retain = np.minimum(max_pc_to_retain_overall, n_feat_orig)
+        if fixed_n_per_group > 0:
+            max_pc_to_retain = int(np.minimum(fixed_n_per_group, n_feat_orig))
 
         print('\nProcessing feature subset: %s\n'%feature_type_name)
         scores_each_prf = np.zeros((n_trials, max_pc_to_retain, n_prfs), dtype=save_dtype)
@@ -219,6 +243,7 @@ def run_pca_texture_pyramid(subject=None,
             pca_wts = np.zeros((n_feat_orig, max_pc_to_retain, n_prfs), dtype=save_dtype)
             pca_premean = np.zeros((n_feat_orig, n_prfs), dtype=save_dtype)
             pca_ncomp = np.zeros((n_prfs,),dtype=save_dtype)
+            pca_prescale = np.ones((n_feat_orig, n_prfs), dtype=save_dtype)
             
         for prf_model_index in range(n_prfs):
 
@@ -233,6 +258,13 @@ def run_pca_texture_pyramid(subject=None,
 
             # pull out the ones for this "type" only
             features_in_prf = feat[:,feature_inds[fi,:]].astype(np.float32)
+
+            if zscore_before_pca:
+                # z-score with training-image statistics only (no validation leakage)
+                z_mu = features_in_prf[fit_inds,:].mean(axis=0)
+                z_sd = features_in_prf[fit_inds,:].std(axis=0)
+                z_sd[z_sd == 0] = 1.0
+                features_in_prf = (features_in_prf - z_mu[np.newaxis,:]) / z_sd[np.newaxis,:]
             
             print('Processing %s, size of array before PCA:'%feature_type_name)
             print(features_in_prf.shape)
@@ -264,6 +296,9 @@ def run_pca_texture_pyramid(subject=None,
                     n_comp_needed = n_comp_needed[0][0] + 1
                 else:
                     n_comp_needed = scores.shape[1]
+                if fixed_n_per_group > 0:
+                    # fixed number of PCs per group (ev is relative to the retained PCs only here)
+                    n_comp_needed = int(np.minimum(fixed_n_per_group, scores.shape[1]))
                 #
                 # Original behavior:
                 # min_pct_var = 0 retained one PCA component from every
@@ -354,6 +389,8 @@ def run_pca_texture_pyramid(subject=None,
                 pca_wts[:,:,prf_model_index] = wts.T
                 pca_premean[:,prf_model_index] = pre_mean
                 pca_ncomp[prf_model_index] = n_comp_needed
+                if zscore_before_pca:
+                    pca_prescale[:,prf_model_index] = z_sd
 
         # To save space, get rid of portion of array that ended up all nans
         if debug:
@@ -389,7 +426,8 @@ def run_pca_texture_pyramid(subject=None,
             save_weights_filename = os.path.join(wts_dir,
                 '%s_%dori_%dsf_PCA_%s_only_%s_weights_grid%d.npy' %
                 (image_set,n_ori, n_sf, feature_type_name, var_str, which_prf_grid))
-            wts = {'pca_wts': pca_wts, 'pca_premean': pca_premean, 'pca_ncomp': pca_ncomp}
+            wts = {'pca_wts': pca_wts, 'pca_premean': pca_premean, 'pca_ncomp': pca_ncomp,
+                   'zscore_before_pca': bool(zscore_before_pca), 'pca_prescale': pca_prescale}
             print('saving the weights for this pca to %s'%save_weights_filename)
             np.save(save_weights_filename, wts, allow_pickle=True)
         
@@ -648,6 +686,10 @@ if __name__ == '__main__':
     
     parser.add_argument("--save_weights", type=int,default=0,
                     help="want to save the weights to reproduce the pca later? 1 for yes, 0 for no")
+    parser.add_argument("--fixed_n_per_group", type=int, default=0,
+                    help="keep exactly this many PCs per group (0 = use min_pct_var)")
+    parser.add_argument("--zscore_before_pca", type=int, default=0,
+                    help="z-score each feature (training images) before PCA? 1 for yes")
 
     
     args = parser.parse_args()
@@ -667,5 +709,7 @@ if __name__ == '__main__':
                             max_pc_to_retain=args.max_pc_to_retain,\
                             debug=args.debug==1,  \
                             which_prf_grid=args.which_prf_grid, \
-                            save_weights = args.save_weights)
+                            save_weights = args.save_weights,
+                            fixed_n_per_group=args.fixed_n_per_group,
+                            zscore_before_pca=args.zscore_before_pca==1)
     
