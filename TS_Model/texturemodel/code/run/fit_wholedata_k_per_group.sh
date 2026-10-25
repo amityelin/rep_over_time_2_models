@@ -5,9 +5,11 @@
 which python3 && python3 --version
 pip install numpy pyrtools
 
-ROOT=/content/drive/MyDrive/V2_drift/
-export PYTHONPATH=${ROOT}texturemodel/:${ROOT}texturemodel/code/:${ROOT}texturemodel/code/utils:$PYTHONPATH
-cd ${ROOT}texturemodel/code/model_fitting
+ROOT=/content/drive/MyDrive/V2_drift/          # data (features, betas, fits) -- always on Drive
+CODE=${CODE:-${ROOT}texturemodel/}             # code; override to run from a git clone, e.g.
+                                               #   CODE=/content/rep_over_time_2_models/TS_Model/texturemodel/ bash <script>
+export PYTHONPATH=${CODE}:${CODE}code/:${CODE}code/utils:$PYTHONPATH
+cd ${CODE}code/model_fitting
 
 echo "========== GPU CHECK =========="
 nvidia-smi || echo "WARNING: no GPU -- Runtime > Change runtime type > GPU"
