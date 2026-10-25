@@ -71,3 +71,17 @@ _High + Low Pass Filters:_
 ## 🧠 Important ROI lableing Clarfication
 
 To quantify how representational features encoded in human V1 drift over time, by modeling neural
+
+## Image configurations (with / without background)
+
+Notebooks 2-8 start with a configuration cell (`ACTIVE_CONFIG`) that must match the one used for pRF sampling
+(`1_nsd_prf_sampling_from_pyramid.ipynb`):
+
+| `ACTIVE_CONFIG` | pRF samples | results |
+|---|---|---|
+| `256_no_background` | `V1_Drift/prfsample_expand` | `V1_Drift/repDrift_expand` |
+| `256_with_background` | `V1_Drift/prfsample_expand_with_background` | `V1_Drift/repDrift_expand_with_background` |
+
+All paths are built from `PRF_ROOT` / `RES_ROOT`, so the two configurations never read or overwrite each other's
+files; figures from notebook 7 go to `V1_Drift/plots/..._with_background` for the background configuration.
+The regression (notebook 2) stops if a pRF-sampling file's `backgroundSize` attribute does not match `ACTIVE_CONFIG`.
