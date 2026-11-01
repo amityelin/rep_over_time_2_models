@@ -122,6 +122,8 @@ def get_args():
     
     parser.add_argument('--henderson_pca', type=int, default=0,
                         help='Use Henderson-style PCA within texture feature groups (1=yes, 0=no)')
+    parser.add_argument('--pyr_ll_only', type=int, default=0,
+                        help='1 = use only the 49 raw lower-order columns of the per-group PCA file (LL-only control)')
     parser.add_argument('--pyr_pca_tag', type=str, default='',
                         help="per-group PCA variant (with --henderson_pca 1), e.g. 'k2z' = 2 PCs per group, "
                              "z-scored before PCA; loads PCA_<type>_<tag>/")

@@ -1,18 +1,19 @@
 #!/bin/bash
-# Whole-data TS fit with the 49 raw lower-order features only (no higher-order PCs; the pca0 configuration
-# used in the session-wise runs). Same fitting/evaluation as fit_wholedata_k_per_group.sh, so
-# k1 (58) minus LL-only (49) = contribution of the 9 higher-order PCs. Resumable via DONE markers.
+# Whole-data TS fit with the 49 raw lower-order features only (no higher-order PCs).
+# Uses the first 49 columns of the k1 per-group file (--pyr_ll_only 1), so the LL features are identical
+# to the k1 model; k1 (58) minus LL-only (49) = contribution of the 9 higher-order PCs.
+# Same fitting/evaluation as fit_wholedata_k_per_group.sh. Resumable via DONE markers.
 ROOT=/content/drive/MyDrive/V2_drift/          # data (features, betas, fits) -- always on Drive
 CODE=${CODE:-${ROOT}texturemodel/}             # code; override to run from a git clone
 export PYTHONPATH=${CODE}:${CODE}code/:${CODE}code/utils:$PYTHONPATH
 cd ${CODE}code/model_fitting
 nvidia-smi > /dev/null 2>&1 && echo "GPU OK" || echo "WARNING: no GPU"
 
-DONE_DIR=${ROOT}texturemodel/wholedata_done/pcaHL_pca0_ridge0_nsd_grid5; mkdir -p "$DONE_DIR"
+DONE_DIR=${ROOT}texturemodel/wholedata_done/pcaHL_k1_LLonly_ridge0_nsd_grid5; mkdir -p "$DONE_DIR"
 n_sessions() { case $1 in 1|2|5|7) echo 40;; 3|6) echo 32;; 4|8) echo 30;; esac; }
 OK=(); SKIPPED=(); FAILED=()
 for S in 1 2 3 4 5 6 7 8; do
-  FEAT=${ROOT}features/pyramid_texture/PCA_pcaHL_v0/S${S}_4ori_4sf_pcaHL_concat_v0pct_grid5.h5py
+  FEAT=${ROOT}features/pyramid_texture/PCA_pcaHL_k1/S${S}_4ori_4sf_pcaHL_concat_k1_grid5.h5py
   for ROI in V1 V2 V3 hV4; do
     T=LL_S${S}_${ROI}
     echo "===================== $T ====================="
@@ -26,7 +27,7 @@ for S in 1 2 3 4 5 6 7 8; do
       --do_val 1 --do_tuning 0 --do_sem_disc 0 --do_pyr_varpart 0 \
       --fitting_type texture_pyramid --n_ori_pyr 4 --n_sf_pyr 4 \
       --group_all_hl_feats 1 --set_lambda_per_group 0 --bootstrap_data 0 \
-      --pyr_pca_type pcaHL --pca_pct_var 0 --henderson_pca 0 --ridge 0
+      --pyr_pca_type pcaHL --henderson_pca 1 --pyr_pca_tag k1 --pyr_ll_only 1 --ridge 0
     if [ $? -eq 0 ]; then touch "$DONE_DIR/$T.DONE"; OK+=("$T"); else FAILED+=("$T"); fi
   done
 done

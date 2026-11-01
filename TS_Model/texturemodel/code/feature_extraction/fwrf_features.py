@@ -122,6 +122,8 @@ class fwrf_feature_loader:
         )
         # per-group PCA variant tag, e.g. 'k2z' -> PCA_<type>_k2z/ (requires henderson_pca)
         self.pca_tag = kwargs.get('pca_tag', None) or None
+        # keep only the 49 raw lower-order columns of a per-group PCA file (LL-only control model)
+        self.ll_only = bool(kwargs.get('ll_only', False))
                 
         self.group_all_hl_feats=kwargs['group_all_hl_feats'] if 'group_all_hl_feats' in kwargs.keys() else True
         
@@ -218,6 +220,23 @@ class fwrf_feature_loader:
             self.feature_column_labels, self.feature_type_names = \
                 texture_feature_utils.get_feature_inds_simplegroups();
         
+        n_cols_labelled = len(self.feature_column_labels)
+        if self.ll_only:
+            # ------------------------------------------------------------
+            # MODIFICATION (Amit Yelin / Claude, Nov 2026)
+            # LL-only control: the first 49 columns of a pcaHL per-group file
+            # are the raw lower-order features (groups 0-3); the batch loader
+            # keeps columns [0:max_features], so restricting the labels to these
+            # columns drops the higher-order PCs.
+            # ------------------------------------------------------------
+            if not (self.henderson_pca and self.pca_type == 'pcaHL'):
+                raise ValueError('ll_only requires --henderson_pca 1 --pyr_pca_type pcaHL')
+            n_ll = int(np.sum(texture_feature_utils.is_low_level()))      # 49
+            labs = np.asarray(self.feature_column_labels)
+            if not (np.all(labs[:n_ll] < 4) and np.all(labs[n_ll:] >= 4)):
+                raise RuntimeError('ll_only: first %d columns are not the lower-order features' % n_ll)
+            self.feature_column_labels = labs[:n_ll]
+            print('LL-only model: keeping the first %d of %d columns' % (n_ll, n_cols_labelled))
         self.max_features = len(self.feature_column_labels)
         
         if self.fixed_n_components is not None:
@@ -261,7 +280,7 @@ class fwrf_feature_loader:
         print('Feature file: %s' % self.features_file)
         print('Columns in feature file: %d, feature labels: %d'
               % (n_cols_in_file, self.max_features))
-        if n_cols_in_file != self.max_features:
+        if n_cols_in_file != (n_cols_labelled if self.ll_only else self.max_features):
             raise RuntimeError(
                 'Feature/label mismatch: %s has %d feature columns but %d '
                 'feature labels were loaded. Features and labels probably come '
