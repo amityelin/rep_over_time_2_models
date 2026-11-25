@@ -87,6 +87,13 @@ pRFs aligned to grid 5. Checkpointed after every training session (resumes after
 
 Single-voxel drift analysis (Roth & Merriam procedure, SP and TS): `../analysis/single_voxel_drift_roth_style.ipynb`.
 
+Population and RDM drift (TS): `notebooks/simulate_population_TS_documented.ipynb` (core simulation cell; `MODEL = "k1"`
+or `"pcaHL95"`) simulates each session's population responses to 100 images from the session-wise weights, then
+`notebooks/save_perm_pop_TS.ipynb` (`MODEL_TAG`, `MATCH_VOX`) computes population similarity, the four RDM
+combinations and 1000 session-order permutations (outputs in `texturemodel/drift_results/population_permutations/`,
+matched-voxel version in `.../matchVox/`). Summary, all vs matched voxels and between-ROI tests:
+`../analysis/population_rdm_matched_voxels.ipynb` with `SOURCE = "TS_k1"`.
+
 ## Running from Colab without copying code to Drive
 
 Data (features, betas, pRF indices, fits) stay on Drive; the code can run from a clone of this repository.
